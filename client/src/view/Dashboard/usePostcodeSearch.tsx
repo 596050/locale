@@ -18,22 +18,24 @@ export const usePostcodeSearch = () => {
     setLoading(true)
     const { errorAction, postcode } = resolvePostcode(input, id)
     const cacheKey = `searchLocation:${postcode}`
+    const resetAction = {
+      payload: {
+        errors: {
+          [id]: {},
+        },
+      },
+      type: REMOVE_ERROR,
+    }
 
     if (cacheKey in cache.current && cache.current[cacheKey]?.data) {
       setLocation(cache.current[cacheKey].data)
+      dispatchError(resetAction)
     } else if (postcode) {
       const { response } = await searchLocation({
-        params: { postcode: postcode },
+        params: { postcode },
       })
       cache.current[cacheKey] = { data: response, timestamp: Date.now() }
-      dispatchError({
-        payload: {
-          errors: {
-            [id]: {},
-          },
-        },
-        type: REMOVE_ERROR,
-      })
+      dispatchError(resetAction)
       setLocation(response)
     } else if (errorAction) {
       dispatchError(errorAction)
